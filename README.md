@@ -2,8 +2,6 @@
 
 AI agents built using Google ADK and Docker model runners. This repository demonstrates scalable, modular agent architectures for various applications, combining lightweight LLMs with containerized execution for enhanced flexibility and integration.
 
----
-
 ## Table of Contents
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
@@ -12,13 +10,9 @@ AI agents built using Google ADK and Docker model runners. This repository demon
 - [Contributing](#contributing)
 - [License](#license)
 
----
-
 ## Overview
 
 This project showcases different types of AI agents created using the Google Application Development Kit (ADK) integrated with Docker model runners. The architecture is designed to support multiple agents handling various tasks, such as travel planning, chatbots, or other AI-driven workflows. The use of Docker & Docker model runner ensures that model environments are consistent, portable, and easy to deploy.
-
----
 
 ## Prerequisites
 
@@ -27,8 +21,6 @@ Before running the agents, ensure you have the following installed on your machi
 - [Python 3.9+](https://www.python.org/downloads/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - `pip` package manager
-
----
 
 ## Agent Examples:
 
@@ -43,8 +35,6 @@ Before running the agents, ensure you have the following installed on your machi
 5. **[Parallel agent](#text-translation):** Executes tasks in parallel flow to optimize performance and control
   
 6. **[Sequential agent](#text-translation):** Executes tasks in sequential flow to optimize performance and control
-
----
 
 ## Installation
 
