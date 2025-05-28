@@ -54,12 +54,7 @@ Before running the agents, ensure you have the following installed on your machi
    Choose the specific agent you want to run:
 
      ```bash
-     cd find_jobs_agent && adk web
-     cd google_search_agent && adk web
-     cd human_in_loop_agent && adk web
-     cd loop_agent && adk web
-     cd parallel_agent && adk web
-     cd sequential_agent && adk web
+     cd agents && adk web
 
 ## Agents
 
