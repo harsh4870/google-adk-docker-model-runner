@@ -56,6 +56,18 @@ Before running the agents, ensure you have the following installed on your machi
      ```bash
      cd agents && adk web
 
+4. **Open browser:**
+   
+   Visit url:
+
+     ```bash
+     http://localhost:8000/dev-ui
+
+5. **Output**
+
+<img width="1438" alt="Screenshot 2025-05-28 at 12 55 04 PM" src="https://github.com/user-attachments/assets/714862bb-75db-4b81-a8a4-82711c5792cc" />
+
+
 ## Agents
 
 - [find_jobs_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/find_jobs_agent)
