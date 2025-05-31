@@ -67,6 +67,28 @@ Before running the agents, ensure you have the following installed on your machi
 
 <img width="1438" alt="Screenshot 2025-05-28 at 12 55 04 PM" src="https://github.com/user-attachments/assets/714862bb-75db-4b81-a8a4-82711c5792cc" />
 
+6. **.env values**
+   
+   Google search agent uses the Google API & Gemini model, need to set the values in `agents/.env` file to use it
+
+   ```bash
+   GOOGLE_GENAI_USE_VERTEXAI=FALSE
+   GOOGLE_API_KEY=add-your-key
+   GOOGLE_CLOUD_LOCATION=us-central1
+   
+8. **Sample prompts**
+
+    1. **[Find job agent](#find-job-agent):** `Share job related to python`
+    
+    2. **[Google search agent](#google-search):** `Share details about docker model runner features release`
+    
+    3. **[Human in loop agent](#human-in-loop):** `Plan a trip to dubai`
+    
+    4. **[Loop agent](#loop-agent):** `Suggest some healthy recipe with paneer`
+    
+    5. **[Parallel agent](#parralel-agent):** `Customer sentiment and feedback trends on Docker Model Runner and Docker AI`
+      
+    6. **[Sequential agent](#sequential-agent):** `Write a HTML code with title and description for front main website page`
 
 ## Agents
 
