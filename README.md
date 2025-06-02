@@ -89,6 +89,24 @@ Before running the agents, ensure you have the following installed on your machi
     5. **[Parallel agent](#parralel-agent):** `Customer sentiment and feedback trends on Docker Model Runner and Docker AI`
       
     6. **[Sequential agent](#sequential-agent):** `Write a HTML code with title and description for front main website page`
+  
+## Running with Docker:
+
+Set environment variable
+  - GOOGLE_API_KEY
+  - GOOGLE_CLOUD_LOCATION
+  - DOCKER_MODEL_RUNNER
+
+### **Pull image**  
+
+   ```sh
+   docker run -p 8000:8000 -e GOOGLE_API_KEY=add-gemini-api-key \
+      -e GOOGLE_CLOUD_LOCATION=us-central1 \
+      -e DOCKER_MODEL_RUNNER=http://model-runner.docker.internal/engines/llama.cpp/v1 \
+   harshmanvar/google-adk-docker-model-runner:v1
+   ```
+
+  Open browser [http://localhost:8000](http://localhost:8000)
 
 ## Agents
 
