@@ -6,14 +6,51 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.adk.tools import FunctionTool
 from typing import Optional
+import os
+import asyncio
 
 APP_NAME = "travel_planner"
 USER_ID = "user_01"
 SESSION_ID = "session_travel_01"
 
-api_base_url = "http://localhost:12434/engines/llama.cpp/v1"
-model_name_at_endpoint = "hosted_vllm/ai/llama3.2:1B-Q8_0"
+# ✅ Dynamic endpoint detection (same as before)
+def get_docker_model_runner_endpoint():
+    """Get Docker Model Runner endpoint with environment detection."""
+    explicit_endpoint = os.environ.get('DOCKER_MODEL_RUNNER')
+    if explicit_endpoint:
+        print(f"Using explicit DOCKER_MODEL_RUNNER: {explicit_endpoint}")
+        return explicit_endpoint
 
+    if _is_running_in_container():
+        endpoint = "http://model-runner.docker.internal/engines/llama.cpp/v1"
+        print("Detected container environment - using docker.internal endpoint")
+    else:
+        endpoint = "http://localhost:12434/engines/llama.cpp/v1"
+        print("Detected host environment - using localhost endpoint")
+
+    return endpoint
+
+def _is_running_in_container():
+    """Detect if we're running inside a Docker container."""
+    try:
+        return (
+            os.path.exists('/.dockerenv') or
+            (os.path.exists('/proc/self/cgroup') and 'docker' in open('/proc/self/cgroup', 'r').read())
+        )
+    except:
+        return False
+
+# Configuration
+api_base_url = get_docker_model_runner_endpoint()
+model_name_at_endpoint = "openai/ai/llama3.2:1B-Q8_0"
+
+# Set environment variables
+os.environ["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "anything")
+os.environ["OPENAI_API_BASE"] = api_base_url
+
+print(f"Configuration:")
+print(f"  API Base URL: {api_base_url}")
+print(f"  Model: {model_name_at_endpoint}")
 
 def ask_for_human_approval(planned_activities: str, user_input: Optional[str] = None) -> str:
     if user_input is None:
@@ -29,9 +66,14 @@ def ask_for_human_approval(planned_activities: str, user_input: Optional[str] = 
 
 approval_tool = FunctionTool(func=ask_for_human_approval)
 
+# Agent definitions (same as before)
 destination_agent = LlmAgent(
     name="DestinationSuggester",
-    model=LiteLlm(model=model_name_at_endpoint, api_base=api_base_url),
+    model=LiteLlm(
+        model=model_name_at_endpoint,
+        api_base=api_base_url,
+        api_key="anything"
+    ),
     instruction="""
     Suggest a relaxing travel destination for a 3-day solo trip.
     Just name the destination with 1 short sentence explaining why.
@@ -42,7 +84,11 @@ destination_agent = LlmAgent(
 
 activity_agent = LlmAgent(
     name="ActivityPlanner",
-    model=LiteLlm(model=model_name_at_endpoint, api_base=api_base_url),
+    model=LiteLlm(
+        model=model_name_at_endpoint,
+        api_base=api_base_url,
+        api_key="anything"
+    ),
     instruction="""
     Based on the destination in state key 'suggested_destination', suggest 2-3 unique things to do there.
     Summarize in 2-3 bullet points.
@@ -53,7 +99,11 @@ activity_agent = LlmAgent(
 
 human_approval_agent = LlmAgent(
     name="RequestHumanApproval",
-    model=LiteLlm(model=model_name_at_endpoint, api_base=api_base_url),
+    model=LiteLlm(
+        model=model_name_at_endpoint,
+        api_base=api_base_url,
+        api_key="anything"
+    ),
     instruction="""
     Use the ask_for_human_approval tool with planned_activities from state.
     The tool will prompt for approval or for choices after rejection.
@@ -65,11 +115,15 @@ human_approval_agent = LlmAgent(
 
 final_agent = LlmAgent(
     name="FinalConfirmer",
-    model=LiteLlm(model=model_name_at_endpoint, api_base=api_base_url),
+    model=LiteLlm(
+        model=model_name_at_endpoint,
+        api_base=api_base_url,
+        api_key="anything"
+    ),
     instruction="""
     If state 'user_approval' is 'yes', confirm the travel plan by combining the destination and activities.
 
-    If state 'user_approval' is 'no', 
+    If state 'user_approval' is 'no',
     check 'user_next_action':
       - If 'change_destination', delete 'suggested_destination' from state.
       - If 'change_days', ask user for new number of days and update 'trip_duration'.
@@ -90,22 +144,37 @@ root_agent = SequentialAgent(
     ]
 )
 
+# ✅ FIXED: Proper session setup
 session_service = InMemorySessionService()
-session = session_service.create_session(
-    app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
-)
 runner = Runner(agent=root_agent, app_name=APP_NAME, session_service=session_service)
 
-def call_agent(query, user_input=None):
-    """
-    query: initial user message
-    user_input: input for approval or change step (yes/no/destination/days)
-    """
+# ✅ FIXED: Async function for proper session management
+async def setup_and_run_agent():
+    """Set up session and run the agent properly."""
+    # Create session properly
+    session = await session_service.create_session(
+        app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
+    )
+
+    print("Session created successfully!")
+
+    # Run the agent
+    query = "Plan a short relaxing trip for me."
     content = types.Content(role='user', parts=[types.Part(text=query)])
-    events = runner.run(user_id=USER_ID, session_id=SESSION_ID, new_message=content)
 
-    for event in events:
+    print(f"\nSending query: {query}")
+    print("Processing...")
+
+    async for event in runner.run_async(
+        user_id=USER_ID,
+        session_id=SESSION_ID,
+        new_message=content
+    ):
         if event.is_final_response():
-            print("\n Final Response:")
+            print("\n✅ Final Response:")
+            print(event.content.parts[0].text)
+            break
 
-call_agent("Plan a short relaxing trip for me.")
+# ✅ FIXED: Run with proper async handling
+if __name__ == "__main__":
+    asyncio.run(setup_and_run_agent())
