@@ -91,13 +91,6 @@ docker run --rm \
   adk-agents
 ```
 
-### 5. Run with Docker Compose
-
-
-```bash
-# Run with Docker Compose
-docker-compose up
-```
 
 ## 🔧 Configuration
 
