@@ -10,7 +10,7 @@ import os
 # Add the shared module to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
-from config import get_model_config, create_session, setup_logging
+from config import get_gemini_model, get_model_config, create_session, setup_logging
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
 from google.adk.runners import Runner
@@ -24,12 +24,18 @@ logger = setup_logging()
 APP_NAME = "job_search_agent"
 USER_ID = "job_seeker"
 
-# FIXED: Using centralized configuration instead of hardcoded endpoints
+def get_search_model():
+    """Get the appropriate model for search agent"""
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+
+    if google_api_key:
+        logger.info("✅ Using Gemini model for Google Search agent")
+        return get_gemini_model()
 
 # Job search agent
 job_searcher = LlmAgent(
     name="JobSearcher",
-    model=get_model_config(temperature=0.2),
+    model=get_search_model(),
     instruction="""You are a professional job search specialist.
 
     Search for job opportunities based on the user's criteria using Google Search.
@@ -51,7 +57,7 @@ job_searcher = LlmAgent(
 # Job analyzer
 job_analyzer = LlmAgent(
     name="JobAnalyzer",
-    model=get_model_config(temperature=0.1),
+    model=get_model_config(),
     instruction="""You are a career advisor and job market analyst.
 
     Analyze the job search results from state['job_search_results'] and provide:

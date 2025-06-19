@@ -139,9 +139,9 @@ def get_model_config(**kwargs):
 
 def get_gemini_model():
     """Convenience function to get Gemini model configuration"""
-    from google.adk.models.genai import Genai
+    from google.adk.models.google_llm import Gemini
     gemini_config = config.get_gemini_config()
-    return Genai(
+    return Gemini(
         model="gemini-2.0-flash",
         api_key=gemini_config["api_key"],
         location=gemini_config["location"]

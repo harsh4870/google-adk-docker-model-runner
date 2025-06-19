@@ -1,9 +1,3 @@
-"""
-Fixed Human-in-Loop Agent with container-aware configuration.
-FIXED: Removed hardcoded endpoints (previously line 14)
-Demonstrates human decision points in AI workflows.
-"""
-
 import asyncio
 import sys
 import os
@@ -11,7 +5,7 @@ import os
 # Add the shared module to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
-from config import get_model_config, create_session, setup_logging
+from config import get_model_config, create_session, setup_logging, get_gemini_model
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
 from google.adk.runners import Runner
@@ -22,16 +16,25 @@ from google.genai import types
 logger = setup_logging()
 
 # Configuration
-APP_NAME = "human_in_loop_travel_planner"
+APP_NAME = "loop_travel_planner"
 USER_ID = "traveler"
 
-# FIXED: No more hardcoded endpoints - using centralized config
-# Previously: api_base_url = "http://localhost:12434/engines/llama.cpp/v1"  # LINE 14 - HARDCODED!
+def get_search_model():
+    """Get the appropriate model for search agent"""
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+
+    if google_api_key:
+        logger.info("✅ Using Gemini model for Google Search agent")
+        return get_gemini_model()
+    else:
+        logger.info("⚠️ No GOOGLE_API_KEY found, using local model")
+        from config import get_model_config
+        return get_model_config(temperature=0.2)
 
 # Travel research agent
 travel_researcher = LlmAgent(
     name="TravelResearcher",
-    model=get_model_config(temperature=0.3),
+    model=get_search_model(),
     instruction="""You are a travel research specialist.
     Research the destination including:
     - Best time to visit and weather
@@ -107,14 +110,14 @@ class HumanInLoopTravelPlanner:
         self.session_service, self.session = await create_session(APP_NAME, USER_ID)
 
         # Create research and initial planning pipeline
-        self.research_pipeline = SequentialAgent(
+        root_agent = SequentialAgent(
             name="ResearchAndInitialPlanning",
             sub_agents=[travel_researcher, itinerary_generator],
             description="Research destination and create initial itinerary."
         )
 
         self.runner = Runner(
-            agent=self.research_pipeline,
+            agent=root_agent,
             app_name=APP_NAME,
             session_service=self.session_service
         )

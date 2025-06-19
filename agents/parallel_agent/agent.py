@@ -10,10 +10,9 @@ import os
 # Add the shared module to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
-from config import get_model_config, create_session, setup_logging
+from config import get_gemini_model, get_model_config, create_session, setup_logging
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.parallel_agent import ParallelAgent
-from google.adk.agents.sequential_agent import SequentialAgent
 from google.adk.runners import Runner
 from google.adk.tools import google_search
 from google.genai import types
@@ -25,10 +24,23 @@ logger = setup_logging()
 APP_NAME = "parallel_market_intelligence"
 USER_ID = "analyst"
 
+
+def get_search_model():
+    """Get the appropriate model for search agent"""
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+
+    if google_api_key:
+        logger.info("✅ Using Gemini model for Google Search agent")
+        return get_gemini_model()
+    else:
+        logger.info("⚠️ No GOOGLE_API_KEY found, using local model")
+        from config import get_model_config
+        return get_model_config(temperature=0.2)
+
 # Define parallel analysis agents
 competitor_analyst = LlmAgent(
     name="CompetitorAnalyst",
-    model=get_model_config(temperature=0.2),
+    model=get_search_model(),
     instruction="""You are a competitive intelligence analyst.
     Analyze competitor strategies, market positioning, and recent developments.
     Focus on actionable insights about competitive landscape.
@@ -41,7 +53,7 @@ competitor_analyst = LlmAgent(
 
 trend_detector = LlmAgent(
     name="TrendDetector",
-    model=get_model_config(temperature=0.3),
+    model=get_search_model(),
     instruction="""You are a trend analysis specialist.
     Identify emerging market trends, technology developments, and industry shifts.
     Focus on forward-looking insights and potential impact on business.
@@ -54,7 +66,7 @@ trend_detector = LlmAgent(
 
 sentiment_analyzer = LlmAgent(
     name="SentimentAnalyzer",
-    model=get_model_config(temperature=0.1),
+    model=get_search_model(),
     instruction="""You are a customer sentiment analysis expert.
     Analyze customer feedback, reviews, and market sentiment indicators.
     Focus on customer perception, satisfaction levels, and pain points.
@@ -97,7 +109,7 @@ summary_agent = LlmAgent(
 )
 
 # Create the sequential pipeline (parallel research → synthesis)
-root_agent = SequentialAgent(
+root_agent = ParallelAgent(
     name="MarketIntelligenceAgent",
     sub_agents=[parallel_research_agent, summary_agent],
     description="Parallel market research followed by intelligent synthesis."
