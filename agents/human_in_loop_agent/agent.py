@@ -13,7 +13,6 @@ APP_NAME = "travel_planner"
 USER_ID = "user_01"
 SESSION_ID = "session_travel_01"
 
-# ✅ Dynamic endpoint detection (same as before)
 def get_docker_model_runner_endpoint():
     """Get Docker Model Runner endpoint with environment detection."""
     explicit_endpoint = os.environ.get('DOCKER_MODEL_RUNNER')
@@ -66,7 +65,7 @@ def ask_for_human_approval(planned_activities: str, user_input: Optional[str] = 
 
 approval_tool = FunctionTool(func=ask_for_human_approval)
 
-# Agent definitions (same as before)
+
 destination_agent = LlmAgent(
     name="DestinationSuggester",
     model=LiteLlm(
@@ -144,21 +143,18 @@ root_agent = SequentialAgent(
     ]
 )
 
-# ✅ FIXED: Proper session setup
 session_service = InMemorySessionService()
 runner = Runner(agent=root_agent, app_name=APP_NAME, session_service=session_service)
 
-# ✅ FIXED: Async function for proper session management
 async def setup_and_run_agent():
     """Set up session and run the agent properly."""
-    # Create session properly
+
     session = await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
 
     print("Session created successfully!")
 
-    # Run the agent
     query = "Plan a short relaxing trip for me."
     content = types.Content(role='user', parts=[types.Part(text=query)])
 
@@ -175,6 +171,5 @@ async def setup_and_run_agent():
             print(event.content.parts[0].text)
             break
 
-# ✅ FIXED: Run with proper async handling
 if __name__ == "__main__":
     asyncio.run(setup_and_run_agent())
