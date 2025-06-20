@@ -1,4 +1,6 @@
 venv
 agents/.env
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd

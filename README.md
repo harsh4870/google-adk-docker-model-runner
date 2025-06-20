@@ -1,119 +1,243 @@
-# ADK Docker Agent Suite
 
-AI agents built using Google ADK and Docker model runners. This repository demonstrates scalable, modular agent architectures for various applications, combining lightweight LLMs with containerized execution for enhanced flexibility and integration.
+# Google ADK + Docker Model Runner Agents 
 
-## Table of Contents
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Agents](#agents)
-- [Contributing](#contributing)
-- [License](#license)
+AI agents built using Google ADK and Docker Model Runner. 
 
-## Overview
 
-This project showcases different types of AI agents created using the Google Application Development Kit (ADK) integrated with Docker model runners. The architecture is designed to support multiple agents handling various tasks, such as travel planning, chatbots, or other AI-driven workflows. The use of Docker & Docker model runner ensures that model environments are consistent, portable, and easy to deploy.
+## Available Agents
 
-## Prerequisites
+| Agent | Description | Key Features |
+|-------|-------------|-------------|
+| **Sequential Agent** | Code development pipeline | Write → Review → Refactor |
+| **Parallel Agent** | Market intelligence analysis | Concurrent competitive/trend/sentiment analysis |
+| **Loop Agent** | Iterative recipe development | Recipe creation with dietician feedback loops |
+| **Human-in-Loop** | Travel planning with feedback | Human decision points in AI workflows |
+| **Google Search** | Web research and synthesis | Live search with comprehensive reports |
+| **Find Job** | Job market analysis | Career guidance and opportunity analysis |
 
-Before running the agents, ensure you have the following installed on your machine:
+## Quick Start
 
-- [Python 3.9+](https://www.python.org/downloads/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- `pip` package manager
+### Prerequisites
 
-## Agent Examples:
+- **Docker Desktop 4.40+** with Model Runner enabled
+- **Python 3.9+** (for local development)
+- **Google API Key** (optional, for Google Search agents)
 
-1. **[Find job agent](#sentiment-analysis):** Summarizes relevant job listings based on user input using contextual understanding
+### 1. Pull and Run a Model
 
-2. **[Google search agent](#named-entity-recognition):** Performs a live Google search and returns a summarized report of the top results
+```bash
+# Enable Docker Model Runner
+docker desktop enable model-runner --tcp 12434
 
-3. **[Human in loop agent](#text-classification):** Integrates human decisions into the agent workflow for critical checkpoints
+# Pull a model
+docker model pull ai/llama3.2:1B-Q8_0
 
-4. **[Loop agent](#text-summarization):** Repeats a task or decision flow until a certain condition is met, enabling iterative refinement
+# Verify Model Runner is working
+curl http://localhost:12434/engines/llama.cpp/v1/models
+```
 
-5. **[Parallel agent](#text-translation):** Executes tasks in parallel flow to optimize performance and control
-  
-6. **[Sequential agent](#text-translation):** Executes tasks in sequential flow to optimize performance and control
+### 2. Clone and Setup
 
-## Installation
+```bash
+git clone https://github.com/dockersamples/google-adk-docker-model-runner.git
+cd google-adk-docker-model-runner
 
-1. **Clone the repository**
+# Copy environment template
+cp agents/.env.example agents/.env
 
-   ```bash
-   git clone https://github.com/harsh4870/google-adk-docker-model-runner.git
-   cd google-adk-docker-model-runner
+# Edit .env file with your configuration
+nano agents/.env
+```
 
-2. **Virtual Env & Install dependencies**
+### 3. Run Locally
 
-   ```bash
-   python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-3. **Run Examples:**
-   
-   Choose the specific agent you want to run:
+# Install dependencies
+pip install -r requirements.txt
 
-     ```bash
-     cd agents && adk web
+# Run specific agents
+cd agents && adk web
+```
+Now open - http://localhost:8000
 
-4. **Open browser:**
-   
-   Visit url:
+### 4. Run with Docker
 
-     ```bash
-     http://localhost:8000/dev-ui
+```bash
+# Build the image
+docker build -t docker-adk-agents:v1 .
 
-5. **Output**
+# Run with local .env variables
+docker run -p 8000:8000 --env-file .env docker-adk-agents:v1
+```
+Now open - http://localhost:8000
 
-<img width="1438" alt="Screenshot 2025-05-28 at 12 55 04 PM" src="https://github.com/user-attachments/assets/714862bb-75db-4b81-a8a4-82711c5792cc" />
+## Sample prompts
 
-6. **.env values**
-   
-   Google search agent uses the Google API & Gemini model, need to set the values in `agents/.env` file to use it
+| Agent | Prompts |
+|-------|-------------|
+| **Sequential Agent** | Write a HTML code with title and description for front main website page |
+| **Parallel Agent** | Customer sentiment and feedback trends on Docker Model Runner and Docker AI |
+| **Loop Agent** | Suggest some healthy recipe with paneer |
+| **Human-in-Loop** | Plan a trip to dubai |
+| **Google Search** | Share details about docker model runner features release |
+| **Find Job** | Share job related to python |
 
-   ```bash
-   GOOGLE_GENAI_USE_VERTEXAI=FALSE
-   GOOGLE_API_KEY=add-your-key
-   GOOGLE_CLOUD_LOCATION=us-central1
-   
-8. **Sample prompts**
+## 🔧 Configuration
 
-    1. **[Find job agent](#find-job-agent):** `Share job related to python`
-    
-    2. **[Google search agent](#google-search):** `Share details about docker model runner features release`
-    
-    3. **[Human in loop agent](#human-in-loop):** `Plan a trip to dubai`
-    
-    4. **[Loop agent](#loop-agent):** `Suggest some healthy recipe with paneer`
-    
-    5. **[Parallel agent](#parralel-agent):** `Customer sentiment and feedback trends on Docker Model Runner and Docker AI`
-      
-    6. **[Sequential agent](#sequential-agent):** `Write a HTML code with title and description for front main website page`
-  
-## Running with Docker:
+### Environment Variables
 
-Set environment variable
-  - GOOGLE_API_KEY
-  - GOOGLE_CLOUD_LOCATION
-  - DOCKER_MODEL_RUNNER
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `DOCKER_MODEL_RUNNER` | Model Runner endpoint | Auto-detected | No |
+| `MODEL_NAME` | Model to use | `ai/llama3.2:1B-Q8_0` | No |
+| `OPENAI_API_KEY` | API key for local runner | `anything` | No |
+| `GOOGLE_API_KEY` | Google API key | None | Yes (for search agents) |
+| `AGENT_TYPE` | Which agent to run | `sequential` | No |
+| `TEST_QUERY` | Query to process | Agent-specific default | No |
 
-### **Pull image**  
+### Automatic Endpoint Detection
 
-   ```sh
-   docker run -p 8000:8000 -e GOOGLE_API_KEY=add-gemini-api-key \
-      -e GOOGLE_CLOUD_LOCATION=us-central1 \
-      -e DOCKER_MODEL_RUNNER=http://model-runner.docker.internal/engines/llama.cpp/v1 \
-   harshmanvar/google-adk-docker-model-runner:v1
-   ```
+The system automatically detects the correct Docker Model Runner endpoint:
 
-  Open browser [http://localhost:8000](http://localhost:8000)
+1. **Explicit Override**: `DOCKER_MODEL_RUNNER` environment variable
+2. **Container Auto-Detection**: Tests common container networking patterns
+3. **Localhost Fallback**: Uses `http://localhost:12434` for development
 
-## Agents
+### Supported Endpoints
 
-- [find_jobs_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/find_jobs_agent)
-- [google_search_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/google_search_agent)
-- [human_in_loop_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/human_in_loop_agent)
-- [loop_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/loop_agent)
-- [parallel_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/parallel_agent)
-- [sequential_agent](https://github.com/harsh4870/google-adk-docker-model-runner/tree/main/agents/sequential_agent)
+- **Host/Development**: `http://localhost:12434/engines/llama.cpp/v1`
+- **Docker Desktop**: `http://host.docker.internal:12434/engines/llama.cpp/v1`
+- **Docker Internal**: `http://model-runner.docker.internal:12434/engines/llama.cpp/v1`
+- **Docker Bridge**: `http://172.17.0.1:12434/engines/llama.cpp/v1`
+- **Docker Compose**: `http://model-runner:12434/engines/llama.cpp/v1`
+
+## 🧪 Testing and Validation
+
+### Test Container Networking
+
+```bash
+# Test endpoint connectivity
+docker run --rm curlimages/curl:latest \
+  curl -f http://host.docker.internal:12434/engines/llama.cpp/v1/models
+
+# Test agent configuration
+docker run --rm \
+  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
+  docker-adk-agents \
+  python -c "
+from agents.shared.config import ModelRunnerConfig
+config = ModelRunnerConfig()
+print(f'Endpoint: {config.api_base}')
+print(f'Model: {config.model_name}')
+"
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+#### Issue: "Session not found"
+```bash
+# Check if using async/await properly
+grep -r "create_session" agents/
+```
+
+#### Issue: "Connection refused"
+```bash
+# Verify Model Runner is accessible
+curl http://localhost:12434/engines/llama.cpp/v1/models
+
+# Check Docker networking
+docker run --rm curlimages/curl:latest \
+  curl -f http://host.docker.internal:12434/engines/llama.cpp/v1/models
+```
+
+#### Issue: "Model not found"
+```bash
+# Pull the model first
+docker model pull ai/llama3.2:1B-Q8_0
+docker model ls
+```
+
+#### Issue: Container networking problems
+```bash
+# Test different endpoints
+for endpoint in \
+  "http://host.docker.internal:12434" \
+  "http://172.17.0.1:12434" \
+  "http://localhost:12434"; do
+  echo "Testing $endpoint..."
+  docker run --rm curlimages/curl:latest \
+    curl -f "$endpoint/engines/llama.cpp/v1/models" || echo "Failed"
+done
+```
+
+### Debug Mode
+
+```bash
+# Enable detailed logging
+docker run --rm \
+  -e LOG_LEVEL=DEBUG \
+  -e DEV_MODE=true \
+  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
+  docker-adk-agents
+```
+
+## 🏗️ Architecture
+
+### System Overview
+
+```
+┌─────────────────────────────────────┐
+│        Application Layer            │ ← Your Agent Logic
+├─────────────────────────────────────┤
+│      🤖 Google ADK Framework       │ ← Agent Orchestration
+│   • Multi-agent workflows          │
+│   • State management               │
+│   • Tool integration               │
+├─────────────────────────────────────┤
+│    📡 Centralized Configuration    │ ← Environment Detection
+│   • Auto endpoint detection        │
+│   • Container networking           │
+│   • Model configuration            │
+├─────────────────────────────────────┤
+│      🔌 LiteLLM Abstraction        │ ← Model API Layer
+├─────────────────────────────────────┤
+│    🚢 Docker Model Runner          │ ← Local Inference
+│   • llama.cpp engine               │
+│   • OpenAI-compatible API          │
+├─────────────────────────────────────┤
+│      🧠 AI Model (Llama 3.2)       │ ← The Actual Model
+└─────────────────────────────────────┘
+```
+
+### Key Design Decisions
+
+1. **Centralized Configuration**: All agents use `agents/shared/config.py`
+2. **Environment Awareness**: Automatic detection of container vs host execution
+3. **Graceful Fallbacks**: Multiple endpoint detection strategies
+4. **Async-First**: Proper async/await patterns throughout
+5. **Error Handling**: Comprehensive error handling and logging
+
+## 📚 Additional Resources
+
+- [Google ADK Documentation](https://google.github.io/adk-docs/)
+- [Docker Model Runner Guide](https://docs.docker.com/ai/model-runner/)
+- [LiteLLM Documentation](https://docs.litellm.ai/)
+- [Container Networking](https://docs.docker.com/network/)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with proper error handling
+4. Test in both local and container environments
+5. Submit a pull request
+
+
+
 
