@@ -75,6 +75,17 @@ docker run -p 8000:8000 --env-file .env docker-adk-agents:v1
 ```
 Now open - http://localhost:8000
 
+## Sample prompts
+
+| Agent | Prompts |
+|-------|-------------|
+| **Sequential Agent** | Write a HTML code with title and description for front main website page |
+| **Parallel Agent** | Customer sentiment and feedback trends on Docker Model Runner and Docker AI |
+| **Loop Agent** | Suggest some healthy recipe with paneer |
+| **Human-in-Loop** | Plan a trip to dubai |
+| **Google Search** | Share details about docker model runner features release |
+| **Find Job** | Share job related to python |
+
 ## 🔧 Configuration
 
 ### Environment Variables
