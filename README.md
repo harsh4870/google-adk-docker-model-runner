@@ -59,11 +59,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run specific agent
-python agents/sequential_agent/agent.py
-python agents/parallel_agent/agent.py
-python agents/loop_agent/agent.py
+# Run specific agents
+cd agents && adk web
 ```
+Now open - http://localhost:8000
 
 ### 4. Run with Docker
 
