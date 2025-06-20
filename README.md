@@ -68,27 +68,12 @@ Now open - http://localhost:8000
 
 ```bash
 # Build the image
-docker build -t adk-agents .
+docker build -t docker-adk-agents:v1 .
 
-# Run sequential agent (default)
-docker run --rm \
-  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
-  -e TEST_QUERY="Create a modern dashboard with charts" \
-  adk-agents
-
-# Run different agents
-docker run --rm \
-  -e AGENT_TYPE=parallel \
-  -e TEST_QUERY="Analyze the AI development tools market" \
-  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
-  adk-agents
-
-docker run --rm \
-  -e AGENT_TYPE=loop \
-  -e TEST_QUERY="Healthy breakfast recipe with quinoa" \
-  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
-  adk-agents
+# Run with local .env variables
+docker run -p 8000:8000 --env-file .env docker-adk-agents:v1
 ```
+Now open - http://localhost:8000
 
 ## 🔧 Configuration
 
@@ -119,72 +104,6 @@ The system automatically detects the correct Docker Model Runner endpoint:
 - **Docker Bridge**: `http://172.17.0.1:12434/engines/llama.cpp/v1`
 - **Docker Compose**: `http://model-runner:12434/engines/llama.cpp/v1`
 
-## 📋 Detailed Agent Examples
-
-### Sequential Agent: Code Development Pipeline
-
-```bash
-# Creates: HTML → Review → Refactored Code
-python agents/sequential_agent/agent.py
-
-# Example with custom query
-TEST_QUERY="Create a login form with validation" python agents/sequential_agent/agent.py
-```
-
-### Parallel Agent: Market Intelligence
-
-```bash
-# Runs 3 agents in parallel: Competitor + Trend + Sentiment Analysis
-python agents/parallel_agent/agent.py
-
-# Example with specific market
-TEST_QUERY="Cloud storage market landscape 2025" python agents/parallel_agent/agent.py
-```
-
-### Loop Agent: Iterative Recipe Development
-
-```bash
-# Creates recipe → Dietician review → Improvement (loops until approved)
-python agents/loop_agent/agent.py
-
-# Example with dietary requirements
-TEST_QUERY="Vegan protein-rich dinner for athletes" python agents/loop_agent/agent.py
-```
-
-### Human-in-Loop: Travel Planning
-
-```bash
-# Research → Initial plan → Human feedback → Optimized plan
-python agents/human_in_loop_agent/agent.py
-
-# Different feedback scenarios
-HUMAN_FEEDBACK_SCENARIO=2 python agents/human_in_loop_agent/agent.py
-```
-
-### Google Search Agent
-
-```bash
-# Requires GOOGLE_API_KEY in .env file
-GOOGLE_API_KEY=your-key python agents/google_search_agent/agent.py
-
-# Example research topic
-TEST_QUERY="Kubernetes security best practices 2025" python agents/google_search_agent/agent.py
-```
-
-### Find Job Agent
-
-```bash
-# Job search and career analysis
-python agents/find_job_agent/agent.py
-
-# Example job search
-TEST_QUERY="Senior DevOps engineer remote positions" python agents/find_job_agent/agent.py
-```
-
-
-
-
-
 ## 🧪 Testing and Validation
 
 ### Test Container Networking
@@ -197,26 +116,13 @@ docker run --rm curlimages/curl:latest \
 # Test agent configuration
 docker run --rm \
   -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
-  adk-agents \
+  docker-adk-agents \
   python -c "
 from agents.shared.config import ModelRunnerConfig
 config = ModelRunnerConfig()
 print(f'Endpoint: {config.api_base}')
 print(f'Model: {config.model_name}')
 "
-```
-
-### Performance Testing
-
-```bash
-# Test all agents sequentially
-for agent in sequential parallel loop human_in_loop; do
-  echo "Testing $agent agent..."
-  docker run --rm \
-    -e AGENT_TYPE=$agent \
-    -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
-    adk-agents
-done
 ```
 
 ## 🔍 Troubleshooting
@@ -267,7 +173,7 @@ docker run --rm \
   -e LOG_LEVEL=DEBUG \
   -e DEV_MODE=true \
   -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
-  adk-agents
+  docker-adk-agents
 ```
 
 ## 🏗️ Architecture
