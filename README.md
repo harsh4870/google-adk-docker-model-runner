@@ -71,7 +71,7 @@ Now open - http://localhost:8000
 docker build -t docker-adk-agents:v1 .
 
 # Run with local .env variables
-docker run -p 8000:8000 --env-file .env docker-adk-agents:v1
+docker run -p 8000:8000 --env-file agents/.env docker-adk-agents:v1
 ```
 Now open - http://localhost:8000
 
