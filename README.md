@@ -14,6 +14,7 @@ AI agents built using Google ADK and Docker Model Runner.
 | **Human-in-Loop** | Travel planning with feedback | Human decision points in AI workflows |
 | **Google Search** | Web research and synthesis | Live search with comprehensive reports |
 | **Find Job** | Job market analysis | Career guidance and opportunity analysis |
+| **Commute Advisor** | Multi-agent commute intelligence | Parallel data fetch → retry loop → Pydantic analysis → briefing |
 
 ## Quick Start
 
@@ -85,6 +86,113 @@ Now open - http://localhost:8000
 | **Human-in-Loop** | Plan a trip to dubai |
 | **Google Search** | Share details about docker model runner features release |
 | **Find Job** | Share job related to python |
+| **Commute Advisor** | What is my commute looking like today from London Bridge to Canary Wharf? I normally take the train but want to know all my options. |
+
+## Commute Advisor Agent
+
+The Commute Advisor is the most advanced agent in this repo — it demonstrates six Google ADK patterns working together in a single pipeline.
+
+### How it works
+
+```
+CommutePipeline (SequentialAgent)
+├── DataGatheringLoop (LoopAgent — retries up to 3×)
+│   ├── ParallelDataFetcher (ParallelAgent — all 4 run simultaneously)
+│   │   ├── WeatherAgent     → weather conditions + commute impact
+│   │   ├── TrainAgent       → train status, delays, platform, crowding
+│   │   ├── BusAgent         → bus status, capacity, diversions
+│   │   └── TrafficAgent     → road congestion, incidents, travel time
+│   └── DataCompletenessChecker → escalates loop when all data present
+├── HistoryAgent        → personalizes result with your commute history
+├── CommuteAnalyzer     → structured Pydantic output (typed recommendation)
+└── RecommendationPresenter → scannable human-readable briefing
+```
+
+**Default route:** London Bridge → Canary Wharf, Bus 188  
+All data is simulated — each run produces a different scenario (clear day, storm, suspended train, standstill traffic, etc.)
+
+### Run with Docker Model Runner
+
+```bash
+# Pull a model (Gemma recommended for better structured output)
+docker model pull ai/gemma3:4B-Q4_0
+
+# Local Python
+cd agents
+MODEL_NAME=ai/gemma3:4B-Q4_0 adk web
+
+# Docker container
+docker run -p 8000:8000 \
+  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
+  -e MODEL_NAME=ai/gemma3:4B-Q4_0 \
+  docker-adk-agents:v1
+```
+
+Open **http://localhost:8000**, select **commute_advisor**, and type your query.
+
+### Supported models
+
+| Model | Pull command | Notes |
+|-------|-------------|-------|
+| Llama 3.2 1B | `docker model pull ai/llama3.2:1B-Q8_0` | Smallest, fastest |
+| Gemma 3 4B | `docker model pull ai/gemma3:4B-Q4_0` | Better quality, recommended |
+| Gemma 3 12B | `docker model pull ai/gemma3:12B-Q4_0` | Best quality, needs 8GB+ RAM |
+
+### Customize your route
+
+Pass these as environment variables to change the default London route:
+
+| Variable | Default | Example |
+|----------|---------|---------|
+| `COMMUTE_ORIGIN` | `London Bridge` | `Kings Cross` |
+| `COMMUTE_DESTINATION` | `Canary Wharf` | `Liverpool Street` |
+| `COMMUTE_BUS_ROUTE` | `188` | `205` |
+| `COMMUTE_USER_ID` | `commuter_001` | `your_name` |
+
+```bash
+docker run -p 8000:8000 \
+  -e DOCKER_MODEL_RUNNER=http://host.docker.internal:12434/engines/llama.cpp/v1 \
+  -e MODEL_NAME=ai/gemma3:4B-Q4_0 \
+  -e COMMUTE_ORIGIN="Kings Cross" \
+  -e COMMUTE_DESTINATION="Liverpool Street" \
+  -e COMMUTE_BUS_ROUTE="205" \
+  docker-adk-agents:v1
+```
+
+### Sample output
+
+```
+COMMUTE ADVISOR — London Bridge → Canary Wharf
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STATUS: SIGNIFICANT DISRUPTION
+
+RECOMMENDATION
+  Mode:       Bus
+  Duration:   ~52 minutes
+  Confidence: 80%
+
+CONDITION SUMMARY
+  Weather  Heavy rain, 9°C — high impact
+  Train    LON Metro Line — major delay, 38 min behind
+  Bus      Route 188 — on time, 42% capacity
+  Traffic  Moderate congestion — 60 min vs 38 min normal
+
+ALERTS
+  - Points failure between stations, engineers on site
+  - Storm warning: delays expected across all transport modes
+
+ADVICE
+  Train severely delayed — take bus 188, on time and well below capacity.
+
+BACKUP PLAN
+  If bus fills up, nearest tube station 8 minutes walk away.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+> For detailed setup instructions, see [agents/commute_advisor/README.md](agents/commute_advisor/README.md).
+
+---
 
 ## 🔧 Configuration
 
